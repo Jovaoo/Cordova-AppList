@@ -1,0 +1,21 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.w-90 {
+    width: 90%;
+}
+.w-10{
+    width: 10%;
+}
+
+.w50 {
+    width: 70%;
+}
+
+.bgRGBA {
+    background-color: rgba(0,0, 0, 0.85);
+    border-radius: 25px;
+    color: #fff;
+    padding: 10%;
+}
