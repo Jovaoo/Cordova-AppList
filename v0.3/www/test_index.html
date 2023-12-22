@@ -1,0 +1,43 @@
+describe("bindEditButtonEvent", function() {
+  beforeEach(function() {
+    // Crea un elemento de prueba y lo agrega al DOM
+    var label = $("<label>").attr("id", "test-label");
+    var span = $("<span>").text("Texto de prueba");
+    label.append(span);
+    var editButton = $("<button>").addClass("edit-button");
+    $("body").append(label).append(editButton);
+  });
+
+  afterEach(function() {
+    // Elimina el elemento de prueba del DOM
+    $("#test-label").remove();
+    $(".edit-button").remove();
+  });
+
+  it("should make the span contentEditable when the edit button is clicked", function() {
+    // Simula un clic en el botón de edición
+    $(".edit-button").trigger("click");
+
+    // Verifica que el atributo contentEditable del span sea true
+    expect($("#test-label span").attr("contentEditable")).toBe("true");
+  });
+
+  it("should update the tarea in the tareas array when the span loses focus", function() {
+    // Simula un clic en el botón de edición
+    $(".edit-button").trigger("click");
+
+    // Simula que se edita el texto del span
+    $("#test-label span").text("Texto editado");
+
+    // Simula que el span pierde el foco
+    $("#test-label span").trigger("blur");
+
+    // Obtiene el valor actualizado de la tarea en el array tareas
+    var tareas = JSON.parse(localStorage.getItem("tareas"));
+    var index = $("#test-label").attr("id");
+    var editedTarea = tareas[index];
+
+    // Verifica que la tarea se haya actualizado correctamente
+    expect(editedTarea).toBe("Texto editado");
+  });
+});

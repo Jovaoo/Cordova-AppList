@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="./img/logo.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#000000" />
+    <meta
+      name="Lista de tareas"
+      content="Web diseñada para añadir tareas a una lista (obviamente)."
+    />
+    <link href="./styles.css" rel="stylesheet" />
+    <link href="../src/styles.css" rel="stylesheet" />
+    <link rel="apple-touch-icon" href="./img/logo.png" />
+    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+    <script
+      src="https://kit.fontawesome.com/8946387bf5.js"
+      crossorigin="anonymous"
+    ></script>
+    <title>Lista de tareas</title>
+    <script src="./main.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  </head>
+  <body>
+    <div class="bg-white shadow-lg overflow-hidden">
+      <div class="px-4 py-2">
+        <h1 class="text-gray-800 font-bold text-2xl uppercase text-center">
+          Lista de tareas
+        </h1>
+      </div>
+      <form class="w-full px-4 py-2">
+        <div class="flex items-center border-b-2 border-blue-600 py-2">
+          <input
+            class="appearance-none bg-transparent border-none w-full text-gray-700 mr-3 py-1 px-2 leading-tight focus:outline-none"
+            type="text"
+            placeholder="Añade una tarea"
+            id="addTarea"
+          />
+          <button
+            class="flex-shrink-0 bg-blue-600 hover:bg-blue-800 border-blue-600 hover:border-blue-700 text-sm border-4 text-white py-1 px-2 rounded"
+            type="button"
+            id="botonAñadir"
+          >
+            Añadir
+          </button>
+        </div>
+      </form>
+      <ul class="divide-y divide-gray-200 px-4" id="formTareas">
+        
+      </ul>
+    </div>
+
+    <script>
+      $(document).ready(function () {
+        var tareas = JSON.parse(localStorage.getItem("tareas")) || [];
+
+        renderizarTareas();
+
+        $("#botonAñadir").click(function () {
+          var nuevaTarea = $("#addTarea").val();
+          var fechaActual = new Date();
+          var opcionesDeFormato = {
+            day: "numeric",
+            month: "long",
+            year: "numeric",
+          };
+          var formatoFecha = new Intl.DateTimeFormat("es-ES", opcionesDeFormato);
+          var fechaFormateada = formatoFecha.format(fechaActual);
+          var nuevaTareaContenido =
+            "<li class='py-4'><div class='flex items-center'><label class='ml-3 block text-gray-900 flex flex-col'><span class='text-lg font-medium'>" +
+            nuevaTarea +
+            "</span><span class='text-sm font-light text-gray-500'>" +
+            fechaFormateada +
+            "</span></label><button class='ml-auto bg-blue-600 hover:bg-blue-800 border-blue-600 hover:border-blue-700 text-sm border-4 text-white py-1 px-2 rounded edit-button' type='button'>Editar</button><button class='ml-2 bg-red-600 hover:bg-red-800 border-red-600 hover:border-red-700 text-sm border-4 text-white py-1 px-2 rounded delete-button' type='button'>Borrar</button></div></li>";
+          $("#formTareas").append(nuevaTareaContenido);
+          tareas.push(nuevaTarea);
+          localStorage.setItem("tareas", JSON.stringify(tareas));
+          bindDeleteButtonEvent();
+          bindEditButtonEvent();
+        });
+
+        function renderizarTareas() {
+          $("#formTareas").empty();
+          for (var i = 0; i < tareas.length; i++) {
+            var tarea = tareas[i];
+            var fechaActual = new Date();
+            var opcionesDeFormato = {
+              day: "numeric",
+              month: "long",
+              year: "numeric",
+            };
+            var formatoFecha = new Intl.DateTimeFormat(
+              "es-ES",
+              opcionesDeFormato
+            );
+            var fechaFormateada = formatoFecha.format(fechaActual);
+            var tareaContenido =
+              "<li class='py-4 flex flex-col'><div class='flex items-center'><label " +
+              i +
+              " class='ml-3 block text-gray-900 flex flex-col'><span class='text-lg font-medium'>" +
+              tarea +
+              "</span><span class='text-sm font-light text-gray-500'>" +
+              fechaFormateada +
+              "</span></label><button class='ml-auto bg-blue-600 hover:bg-blue-800 border-blue-600 hover:border-blue-700 text-sm border-4 text-white py-1 px-2 rounded edit-button' type='button'>Editar</button><button class='ml-2 bg-red-600 hover:bg-red-800 border-red-600 hover:border-red-700 text-sm border-4 text-white py-1 px-2 rounded delete-button' type='button'>Borrar</button></div></li>";
+            $("#formTareas").append(tareaContenido);
+          }
+          bindDeleteButtonEvent();
+          bindEditButtonEvent();
+        }
+
+        function bindDeleteButtonEvent() {
+          $(".delete-button")
+            .off("click")
+            .on("click", function () {
+              $(this).closest("li").remove();
+              var index = $(this).prevAll("label").attr("id");
+              tareas.splice(index, 1);
+              localStorage.setItem("tareas", JSON.stringify(tareas));
+            });
+        }
+
+        function bindEditButtonEvent() {
+          $(".edit-button")
+            .off("click")
+            .on("click", function () {
+              var label = $(this).prev("label");
+              var span = label.find("span:first");
+              span.attr("contentEditable", true);
+              var textNode = span.get(0).childNodes[0];
+              var range = document.createRange();
+              var sel = window.getSelection();
+              range.setStart(textNode, textNode.length);
+              range.collapse(true);
+              sel.removeAllRanges();
+              sel.addRange(range);
+              span.focus();
+              var index = $(this).prevAll("label").attr("id");
+              var originalTarea = tareas[index];
+              span.on("blur", function () {
+                var editedTarea = span.text();
+                tareas[index] = editedTarea;
+                localStorage.setItem("tareas", JSON.stringify(tareas));
+                renderizarTareas();
+              });
+
+              var acceptButton = $("<button>")
+                .addClass("ml-auto bg-green-600 hover:bg-green-800 border-green-600 hover:border-green-700 text-sm border-4 text-white py-1 px-2 rounded accept-button")
+                .attr("type", "button")
+                .text("Aceptar")
+                .on("click", function () {
+                  var label = $(this).prevAll("label");
+                  var span = label.find("span:first");
+                  span.attr("contentEditable", false);
+                  var index = label.attr("id");
+                  var editedTarea = span.text();
+                  tareas[index] = editedTarea;
+                  localStorage.setItem("tareas", JSON.stringify(tareas));
+                  renderizarTareas();
+                  bindEditButtonEvent();
+                });
+
+              $(this).replaceWith(acceptButton);
+              bindAcceptButtonEvent();
+            });
+        }
+
+        function bindAcceptButtonEvent() {
+          $(".accept-button")
+            .off("click")
+            .on("click", function () {
+              var label = $(this).prevAll("label");
+              var span = label.find("span:first");
+              span.attr("contentEditable", false);
+              var index = label.attr("id");
+              var editedTarea = span.text();
+              tareas[index] = editedTarea;
+              localStorage.setItem("tareas", JSON.stringify(tareas));
+              renderizarTareas();
+              bindEditButtonEvent();
+            });
+        }
+      });
+    </script>
+  </body>
+</html>
